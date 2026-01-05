@@ -4,6 +4,35 @@ document.addEventListener("DOMContentLoaded", () => {
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
 
+  // Helper to produce initials from a name or email
+  function initialsFrom(value) {
+    if (!value) return "";
+    if (typeof value === "object" && value.name) value = value.name;
+    value = String(value).trim();
+    // If looks like an email, use the local-part
+    if (value.includes("@")) value = value.split("@")[0];
+    const parts = value.split(/[\s._-]+/).filter(Boolean);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + (parts[1][0] || "")).toUpperCase();
+  }
+
+  // Helper to get display name
+  function displayNameFrom(value) {
+    if (!value) return "Unknown";
+    if (typeof value === "object") {
+      if (value.name) return value.name;
+      if (value.email) return value.email;
+    }
+    if (typeof value === "string" && value.includes("@")) {
+      return value; // show full email if only an email is available
+    }
+    // Title-case a simple name/local-part
+    return String(value)
+      .split(/[\s._-]+/)
+      .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+      .join(" ");
+  }
+
   // Function to fetch activities from API
   async function fetchActivities() {
     try {
@@ -18,14 +47,55 @@ document.addEventListener("DOMContentLoaded", () => {
         const activityCard = document.createElement("div");
         activityCard.className = "activity-card";
 
-        const spotsLeft = details.max_participants - details.participants.length;
+        const spotsLeft = details.max_participants - (details.participants?.length || 0);
 
+        // Top part of card
         activityCard.innerHTML = `
           <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
         `;
+
+        // Participants block
+        const participantsWrap = document.createElement("div");
+        participantsWrap.className = "participants";
+
+        const pHeading = document.createElement("h5");
+        pHeading.textContent = "Participants";
+        participantsWrap.appendChild(pHeading);
+
+        const pList = document.createElement("ul");
+        pList.className = "participants-list";
+
+        const participants = Array.isArray(details.participants) ? details.participants : [];
+
+        if (participants.length === 0) {
+          const emptyItem = document.createElement("li");
+          emptyItem.style.fontStyle = "italic";
+          emptyItem.style.color = "#666";
+          emptyItem.textContent = "No participants yet";
+          pList.appendChild(emptyItem);
+        } else {
+          participants.forEach((participant) => {
+            const li = document.createElement("li");
+
+            const avatar = document.createElement("div");
+            avatar.className = "avatar";
+            avatar.textContent = initialsFrom(participant);
+
+            const nameDiv = document.createElement("div");
+            nameDiv.className = "participant-name";
+            nameDiv.textContent = displayNameFrom(participant);
+
+            li.appendChild(avatar);
+            li.appendChild(nameDiv);
+            pList.appendChild(li);
+          });
+        }
+
+        participantsWrap.appendChild(pList);
+        activityCard.appendChild(participantsWrap);
 
         activitiesList.appendChild(activityCard);
 
