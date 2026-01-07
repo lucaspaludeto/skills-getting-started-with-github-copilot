@@ -158,6 +158,7 @@ footer {
   font-weight: 600;
 }
 
+/* Hide bullet points and style participants list */
 .participants-list {
   list-style: none;
   padding: 0;
@@ -176,6 +177,21 @@ footer {
   border-radius: 6px;
   border: 1px solid #eef3ff;
   box-shadow: 0 1px 0 rgba(17, 24, 39, 0.02);
+  position: relative;
+}
+.delete-participant {
+  background: none;
+  border: none;
+  color: #c62828;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: auto;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.delete-participant:hover {
+  background: #ffeaea;
 }
 
 .avatar {
